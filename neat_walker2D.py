@@ -252,7 +252,7 @@ class NEATTrainer:
             exclude_current_positions_from_observation=cfg.exclude_current_positions_from_observation,
             forward_reward_weight=cfg.forward_reward_weight,
         )
-        self.obs_dim = int(np.prod(probe.observation_space.shape))
+        self.obs_dim = int(np.prod(probe.observation_space.shape)) 
         self.act_dim = int(np.prod(probe.action_space.shape))
         probe.close()
 
@@ -284,16 +284,18 @@ class NEATTrainer:
     def close(self) -> None:
         self.evaluator.close()
 
+    # Sostituzione in _phase_noise
     def _phase_noise(self, phase_idx: int) -> Tuple[float, np.ndarray]:
-        phase_noise_value = float(np.random.standard_normal()) * self.cfg.noise_std
-        noise_vec = np.full((self.obs_dim,), phase_noise_value, dtype=np.float32)
-        self.current_phase_noise_value = phase_noise_value
-
+        # Genera un vettore di rumore, non un bias scalare
+        noise_vec = np.random.normal(loc=0.0, scale=self.cfg.noise_std, size=(self.obs_dim,)).astype(np.float32)
+        
+        # Salva il vettore (l'idea di salvare il "valore" scalare non è più valida)
         np.save(os.path.join(self.cfg.out_dir, f"phase_{phase_idx:02d}_noise.npy"), noise_vec)
         with open(os.path.join(self.cfg.out_dir, f"phase_{phase_idx:02d}_noise.json"), "w") as fh:
-            json.dump({"phase_noise_value": phase_noise_value}, fh, indent=2)
+            # Salva una statistica, es. la norma del vettore
+            json.dump({"phase_noise_norm": float(np.linalg.norm(noise_vec))}, fh, indent=2)
 
-        return phase_noise_value, noise_vec
+        return noise_vec
 
     def _save_checkpoint(self, phase_idx: int, gen_global: int) -> None:
         ckpt_dir = os.path.join(self.cfg.out_dir, f"checkpoint_phase{phase_idx:02d}_gen{gen_global:04d}")
@@ -384,9 +386,9 @@ class NEATTrainer:
         gen_global = 0
 
         for phase_idx in range(1, self.cfg.phases + 1):
-            phase_noise_value, noise_vec = self._phase_noise(phase_idx)
+            noise_vec = self._phase_noise(phase_idx)
             print(
-                f"[Phase {phase_idx}/{self.cfg.phases}] Noise value kept constant this phase: {phase_noise_value:.5f}"
+                f"[Phase {phase_idx}/{self.cfg.phases}] Noise vector kept constant this phase: {noise_vec}"
             )
 
             for gen_idx in range(1, self.cfg.max_generations_per_phase + 1):
