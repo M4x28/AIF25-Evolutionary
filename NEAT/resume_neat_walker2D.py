@@ -10,7 +10,7 @@ from typing import Optional, Tuple
 import neat
 import random
 
-from neat_walker2D import NEATTrainer, TrainConfig, set_global_seed
+from NEAT.main import NEATTrainer, TrainConfig, set_global_seed
 
 
 def _parse_phase_gen(name: str) -> Tuple[int, int]:
