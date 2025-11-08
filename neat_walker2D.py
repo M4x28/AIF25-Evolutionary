@@ -262,17 +262,17 @@ class TrainConfig: # Contenitore centralizzato per tutti i parametri di configur
 
     # --- Parametri di NEAT (Evoluzione) ---
     # La dimensione della popolazione NEAT (quanti genomi per generazione).
-    pop_size: int = 20
+    pop_size: int = 150
     
     # Quante generazioni di NEAT vengono eseguite *per ogni fase* di rumore.
-    max_generations_per_phase: int = 100
+    max_generations_per_phase: int = 25
     
     # Il numero totale di fasi di training. Ad ogni fase, il rumore applicato alle osservazioni viene cambiato.
-    phases: int = 3
+    phases: int = 12
 
     # --- Parametri del Rumore (Robustezza) ---
     # La deviazione standard del rumore Gaussiano (casuale) che verrà aggiunto alle osservazioni.
-    noise_std: float = 0.05
+    noise_std: float = 0.00
 
     # --- Parametri di Output e Logging ---
     
@@ -280,7 +280,7 @@ class TrainConfig: # Contenitore centralizzato per tutti i parametri di configur
     out_dir: str = "runs/runs_neat_2_walker2d" 
     
     # La durata massima (in secondi) dei video registrati per il miglior genoma.
-    video_seconds: int = 5
+    video_seconds: int = 15
 
     # --- Parametri di Riproducibilità ---
     
@@ -366,6 +366,7 @@ class WalkerEvaluator:
         #
         
         # Itera su ogni genoma della popolazione
+        self.seed_addition += 1
         for _, genome in genomes:
             
             # 1. Crea la rete neurale (FeedForwardNetwork) da questo genoma
@@ -374,7 +375,6 @@ class WalkerEvaluator:
             # 2. Resetta l'ambiente
             #    Usiamo lo stesso seed per assicurare che *tutti* i genomi
             #    partano dalla stessa identica condizione (valutazione equa).
-            self.seed_addition += 1
             obs, _ = self.env.reset(seed=self.cfg.seed + self.seed_addition)
 
             cum_reward = 0.0
@@ -385,10 +385,11 @@ class WalkerEvaluator:
                 
                 # Applica il rumore all'osservazione, se fornito
                 noisy_obs = obs if noise_vec is None else (obs + noise_vec)
-                
+                # In evaluate_genomes:
                 # Chiedi alla rete di decidere un'azione
-                action = np.array(net.activate(noisy_obs.tolist()), dtype=np.float32)
-
+                raw_action = np.array(net.activate(noisy_obs.tolist()), dtype=np.float32)
+                # Applica tanh per mappare l'output in [-1, 1]
+                action = np.tanh(np.array(raw_action, dtype=np.float32))
                 # Esegui l'azione nell'ambiente
                 obs, reward, terminated, truncated, _ = self.env.step(action)
 
