@@ -280,7 +280,7 @@ class TrainConfig: # Contenitore centralizzato per tutti i parametri di configur
     out_dir: str = "runs/runs_neat_2_walker2d" 
     
     # La durata massima (in secondi) dei video registrati per il miglior genoma.
-    video_seconds: int = 20
+    video_seconds: int = 5
 
     # --- Parametri di Riproducibilità ---
     
@@ -317,7 +317,8 @@ class WalkerEvaluator:
         self.cfg = cfg
         self.obs_dim = obs_dim
         self.act_dim = act_dim
-        
+        self.seed_addition = 0
+
         # Crea l'ambiente (verrà riusato da tutti i genomi)
         self.env = gym.make(
             cfg.env_id,
@@ -373,7 +374,8 @@ class WalkerEvaluator:
             # 2. Resetta l'ambiente
             #    Usiamo lo stesso seed per assicurare che *tutti* i genomi
             #    partano dalla stessa identica condizione (valutazione equa).
-            obs, _ = self.env.reset(seed=self.cfg.seed)
+            self.seed_addition += 1
+            obs, _ = self.env.reset(seed=self.cfg.seed + self.seed_addition)
 
             cum_reward = 0.0
             steps = 0
