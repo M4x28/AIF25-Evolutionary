@@ -7,6 +7,7 @@ import pathlib
 import pickle
 from dataclasses import dataclass, asdict
 from typing import Dict, List, Optional, Tuple
+import multiprocessing
 
 import gymnasium as gym
 import matplotlib.pyplot as plt
@@ -292,7 +293,48 @@ class TrainConfig: # Contenitore centralizzato per tutti i parametri di configur
     # Il percorso del file di configurazione specifico per 
     neat_config_path: str = "configs/neat_walker2d.cfg"
 
+def eval_single_genome(params: Tuple) -> float:
+    """
+    Funzione eseguita da un processo worker.
+    Valuta un singolo genoma in un ambiente dedicato.
+    """
+    # 1. Spacchetta i parametri (necessario per pool.map)
+    genome, neat_config, cfg, noise_vec, eval_seed = params
 
+    # 2. Crea un ambiente *in questo processo*
+    #    Ogni worker DEVE avere il proprio ambiente.
+    env = gym.make(
+        cfg.env_id,
+        exclude_current_positions_from_observation=cfg.exclude_current_positions_from_observation,
+        forward_reward_weight=cfg.forward_reward_weight,
+    )
+    
+    # 3. Crea la rete neurale
+    net = neat.nn.FeedForwardNetwork.create(genome, neat_config)
+
+    # 4. Resetta l'ambiente (tutti i worker usano lo stesso seed)
+    obs, _ = env.reset(seed=eval_seed)
+    
+    cum_reward = 0.0
+    steps = 0
+
+    # 5. Esegui la simulazione (come nel tuo vecchio codice)
+    while steps < cfg.max_episode_steps:
+        noisy_obs = obs if noise_vec is None else (obs + noise_vec)
+        action = np.tanh(np.array(net.activate(noisy_obs.tolist()), dtype=np.float32))
+        obs, reward, terminated, truncated, _ = env.step(action)
+        
+        cum_reward += float(reward)
+        steps += 1
+        
+        if terminated or truncated:
+            break
+    
+    # 6. Chiudi l'ambiente del worker
+    env.close()
+    
+    # 7. Restituisci la fitness calcolata
+    return cum_reward
 # ======================================================================================
 # NEAT Evaluation Helpers
 # ======================================================================================
@@ -497,15 +539,22 @@ class NEATTrainer:
         self.stats = neat.StatisticsReporter()
         self.population.add_reporter(self.stats)
 
-        self.evaluator = WalkerEvaluator(cfg, self.obs_dim, self.act_dim)
+        self.seed_addition = 0
+
+        num_cores = multiprocessing.cpu_count()
+        print(f"--- Creazione di un Pool con {num_cores} worker paralleli ---")
+        self.pool = multiprocessing.Pool(processes=num_cores)
 
         self.history: Dict[str, List[float]] = {"gen_max": [], "gen_avg": []}
         self.best_genome = None
         self.best_fitness: float = -np.inf
         self.current_phase_noise_value: float = 0.0
 
-    def close(self) -> None:
-        self.evaluator.close()
+        def close(self) -> None:
+            # chiudi il pool invece dell'evaluator
+            print("--- Chiusura del pool di worker ---")
+            self.pool.close()
+            self.pool.join()
 
     # Sostituzione in _phase_noise
     def _phase_noise(self, phase_idx: int) -> Tuple[float, np.ndarray]:
@@ -580,9 +629,38 @@ class NEATTrainer:
                 pass
 
     def _evaluate_current_generation(self, noise_vec: Optional[np.ndarray]) -> None:
-        def eval_fn(genomes, neat_cfg):
-            self.evaluator.evaluate_genomes(genomes, neat_cfg, noise_vec)
+        # 1. Incrementa il seed (come nel tuo codice originale)
+        #    Questo assicura che tutti i genomi in questa generazione
+        #    siano valutati sulla *stessa* condizione iniziale.
+        self.seed_addition += 1
+        eval_seed = self.cfg.seed + self.seed_addition
 
+        def eval_fn(genomes: List[Tuple[int, neat.DefaultGenome]], neat_cfg: neat.Config):
+            
+            # 2. Prepara i "pacchetti di lavoro" (task) per il pool
+            #    Ogni task contiene tutto ciò che serve al worker.
+            tasks = []
+            for genome_id, genome in genomes:
+                tasks.append(
+                    (genome, neat_cfg, self.cfg, noise_vec, eval_seed)
+                )
+
+            # 3. Esegui in parallelo!
+            #    pool.map distribuisce i task tra i worker
+            #    e raccoglie i risultati (fitness) nello stesso ordine.
+            try:
+                fitness_list = self.pool.map(eval_single_genome, tasks)
+            except Exception as e:
+                print(f"Errore durante la valutazione parallela: {e}")
+                # In caso di errore, assegna fitness 0 a tutti per continuare
+                fitness_list = [0.0] * len(genomes)
+
+            # 4. Assegna la fitness ai genomi
+            for (genome_id, genome), fitness in zip(genomes, fitness_list):
+                genome.fitness = fitness
+
+        # Di' a NEAT di eseguire la valutazione
+         # NEAT chiamerà la nostra 'eval_fn' interna
         self.population.run(eval_fn, 1)
 
     def _update_history(self) -> Tuple[float, float, float]:
