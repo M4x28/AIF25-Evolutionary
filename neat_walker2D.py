@@ -123,16 +123,6 @@ survival_threshold = 0.3
 """
 
 
-def ensure_neat_config(path: pathlib.Path, pop_size: int, num_inputs: int, num_outputs: int) -> None:
-    if path.exists():
-        return
-    ensure_dir(str(path.parent))
-    config_text = DEFAULT_NEAT_CONFIG_TEMPLATE.format(
-        pop_size=pop_size, num_inputs=num_inputs, num_outputs=num_outputs
-    )
-    path.write_text(config_text)
-
-
 # ======================================================================================
 # Configurazione
 # ======================================================================================
@@ -293,7 +283,6 @@ class NEATTrainer:
         probe.close()
 
         config_path = pathlib.Path(cfg.neat_config_path)
-        ensure_neat_config(config_path, cfg.pop_size, self.obs_dim, self.act_dim)
         self.neat_config = neat.Config(
             neat.DefaultGenome,
             neat.DefaultReproduction,
