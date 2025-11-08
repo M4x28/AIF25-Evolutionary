@@ -168,14 +168,21 @@ class WalkerEvaluator:
             steps = 0
 
             while steps < self.cfg.max_episode_steps:
-                action_raw = np.array(net.activate(obs.tolist()), dtype=np.float32)
-                action = np.tanh(action_raw if noise_vec is None else (action_raw + noise_vec))
+                        # 1. Apply noise to the observation
+                        noisy_obs = obs if noise_vec is None else (obs + noise_vec)
+                        
+                        # 2. Get action from network using the noisy observation
+                        action_raw = np.array(net.activate(noisy_obs.tolist()), dtype=np.float32)
+                        
+                        # 3. Apply activation function (tanh)
+                        action = np.tanh(action_raw)
 
-                obs, reward, terminated, truncated, _ = self.env.step(action)
-                cum_reward += float(reward)
-                steps += 1
-                if terminated or truncated:
-                    break
+                        # 4. Step the environment
+                        obs, reward, terminated, truncated, _ = self.env.step(action)
+                        cum_reward += float(reward)
+                        steps += 1
+                        if terminated or truncated:
+                            break
 
             genome.fitness = cum_reward
 
