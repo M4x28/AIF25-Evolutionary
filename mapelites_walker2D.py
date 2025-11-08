@@ -40,9 +40,9 @@ class TrainConfig:
     num_emitters: int = 8 
     emitter_batch: int = 40
     sigma0: float = 0.5
-    archive_bins: Tuple[int, int] = (64, 64)
-    forward_velocity_range: Tuple[float, float] = (-1.0, 5.0)
-    torso_height_range: Tuple[float, float] = (0.5, 1.8)
+    archive_bins: Tuple[int, int] = (48, 32)
+    forward_velocity_range: Tuple[float, float] = (0.0, 10.0)
+    torso_height_range: Tuple[float, float] = (0.8, 1.7)
     qd_score_offset: float = -500.0
     noise_std: float = 0.05
     out_dir: str = "runs_mapelites_2_walker2d"
@@ -77,12 +77,10 @@ def simulate_policy(
         done = terminated or truncated
         total_reward += float(reward)
 
-        if info and "x_velocity" in info:
-            forward_vel_samples.append(float(info["x_velocity"]))
-        else:
-            x_now = float(env.unwrapped.data.qpos[0])
-            forward_vel_samples.append((x_now - prev_x) / dt)
-            prev_x = x_now
+        
+        x_now = float(env.unwrapped.data.qpos[0])
+        forward_vel_samples.append((x_now - prev_x) / dt)
+        prev_x = x_now
 
         if hasattr(env.unwrapped, "data"):
             torso_height_samples.append(float(env.unwrapped.data.qpos[1]))
@@ -111,7 +109,8 @@ def record_video(
     frames: List[np.ndarray] = []
     max_frames = cfg.video_seconds * cfg.render_fps
     steps = 0
-    while steps < cfg.iterations_per_phase and len(frames) < max_frames:
+    max_steps = getattr(env.spec, "max_episode_steps", 1000)
+    while steps < max_steps and len(frames) < max_frames:
         raw_action = weights @ obs
         action = np.tanh(raw_action if noise_vec is None else (raw_action + noise_vec))
         obs, _, terminated, truncated, _ = env.step(action)
@@ -133,6 +132,7 @@ def record_video(
 
 class WalkerCMAMeTrainer:
     def __init__(self, cfg: TrainConfig):
+        np.random.seed(cfg.seed)
         self.cfg = cfg
         ensure_dir(cfg.out_dir)
         env = gym.make(cfg.env_id)
@@ -146,6 +146,8 @@ class WalkerCMAMeTrainer:
             dims=list(cfg.archive_bins),
             ranges=[cfg.forward_velocity_range, cfg.torso_height_range],
             qd_score_offset=cfg.qd_score_offset,
+            seed=cfg.seed,
+            dtype="f",
         )
         initial = np.zeros(self.solution_dim, dtype=np.float64)
         self.emitters = [
@@ -155,11 +157,18 @@ class WalkerCMAMeTrainer:
                 sigma0=cfg.sigma0,
                 batch_size=cfg.emitter_batch,
                 ranker="2imp",
+                seed=cfg.seed + i
             )
-            for _ in range(cfg.num_emitters)
+            for i in range(cfg.num_emitters)
         ]
         self.scheduler = Scheduler(self.archive, self.emitters)
-        self.history: Dict[str, List[float]] = {"obj_max": [], "obj_mean": [], "coverage": []}
+        self.history: Dict[str, List[float]] = {
+            "obj_max": [],
+            "obj_mean": [],
+            "coverage": [],
+            "qd_score": [],
+            "norm_qd_score": [],
+        }
         self.best_solution: Optional[np.ndarray] = None
         self.best_objective: float = -np.inf
 
@@ -199,13 +208,35 @@ class WalkerCMAMeTrainer:
         if phase_best_solution is not None:
             np.save(os.path.join(ckpt_dir, "phase_best_solution.npy"), phase_best_solution)
 
-        plt.figure(figsize=(8, 5))
-        plt.plot(self.history["obj_max"], label="Max reward")
-        plt.plot(self.history["obj_mean"], label="Mean reward")
-        plt.xlabel("Iterazione")
-        plt.ylabel("Reward")
-        plt.title("CMA-ME Walker2d")
-        plt.legend()
+        def _normalize(series: List[float]) -> List[float]:
+            if not series:
+                return []
+            arr = np.array(series, dtype=np.float32)
+            arr_min = float(arr.min())
+            arr_max = float(arr.max())
+            if arr_max - arr_min < 1e-8:
+                return [0.0 for _ in arr]
+            return ((arr - arr_min) / (arr_max - arr_min)).tolist()
+
+        fig, ax1 = plt.subplots(figsize=(8, 5))
+        line1, = ax1.plot(self.history["obj_max"], label="Max reward", color="tab:blue")
+        line2, = ax1.plot(self.history["obj_mean"], label="Mean reward", color="tab:orange")
+        ax1.set_xlabel("Iterazione")
+        ax1.set_ylabel("Reward")
+
+        ax2 = ax1.twinx()
+        line3, = ax2.plot(self.history["coverage"], label="Coverage", color="tab:green")
+        norm_qd = _normalize(self.history["qd_score"])
+        line4 = None
+        if norm_qd:
+            line4, = ax2.plot(norm_qd, label="QD score (norm)", color="tab:purple", linestyle="--")
+        ax2.set_ylabel("Coverage / Normalized QD")
+        ax2.set_ylim(0.0, 1.0)
+
+        lines = [line1, line2, line3] + ([line4] if line4 is not None else [])
+        labels = [line.get_label() for line in lines]
+        ax1.legend(lines, labels, loc="upper left")
+        ax1.set_title("CMA-ME Walker2d")
         plt.tight_layout()
         plt.savefig(os.path.join(ckpt_dir, "reward_curve.png"))
         plt.close()
@@ -216,7 +247,9 @@ class WalkerCMAMeTrainer:
             vmin=self.cfg.heatmap_vmin,
             vmax=self.cfg.heatmap_vmax,
             cmap="viridis",
+            transpose_measures=False,
         )
+
         plt.gca().invert_yaxis()
         plt.ylabel("Torso height")
         plt.xlabel("Forward velocity")
@@ -264,9 +297,16 @@ class WalkerCMAMeTrainer:
 
                 iter_global += 1
                 stats = self.archive.stats
+
+                qd_score = float(stats.qd_score) if stats.qd_score is not None else 0.0
+                norm_qd_score_attr = getattr(stats, "normalized_qd_score", None)
+                norm_qd_score = float(norm_qd_score_attr) if norm_qd_score_attr is not None else 0.0
                 obj_max = float(stats.obj_max) if stats.obj_max is not None else 0.0
                 obj_mean = float(stats.obj_mean) if stats.obj_mean is not None else 0.0
                 coverage = float(stats.coverage) if stats.coverage is not None else 0.0
+
+                self.history["qd_score"].append(qd_score)
+                self.history["norm_qd_score"].append(norm_qd_score)
                 self.history["obj_max"].append(obj_max)
                 self.history["obj_mean"].append(obj_mean)
                 self.history["coverage"].append(coverage)
