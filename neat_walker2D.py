@@ -49,17 +49,17 @@ bias_init_stdev         = 1.0
 bias_max_value          = 30.0
 bias_min_value          = -30.0
 bias_mutate_power       = 0.5
-bias_mutate_rate        = 0.7
+bias_mutate_rate        = 0.4
 bias_replace_rate       = 0.1
 compatibility_disjoint_coefficient = 1.0
 compatibility_weight_coefficient = 0.5
-conn_add_prob           = 0.2
+conn_add_prob           = 0.1
 conn_delete_prob        = 0.1
 enabled_default         = True
 enabled_mutate_rate     = 0.01
 feed_forward            = True
 initial_connection      = full_direct
-node_add_prob           = 0.2
+node_add_prob           = 0.1
 node_delete_prob        = 0.1
 num_hidden              = 0
 num_inputs              = {num_inputs}
@@ -76,20 +76,20 @@ weight_init_stdev       = 1.0
 weight_max_value        = 30.0
 weight_min_value        = -30.0
 weight_mutate_power     = 0.5
-weight_mutate_rate      = 0.8
+weight_mutate_rate      = 0.4
 weight_replace_rate     = 0.1
 
 [DefaultSpeciesSet]
-compatibility_threshold = 3.0
+compatibility_threshold = 3.5
 
 [DefaultStagnation]
 species_fitness_func = max
-max_stagnation       = 20
+max_stagnation       = 10
 species_elitism      = 1
 
 [DefaultReproduction]
 elitism            = 2
-survival_threshold = 0.2
+survival_threshold = 0.3
 """
 
 
@@ -122,7 +122,7 @@ class TrainConfig:
 
     noise_std: float = 0.05
 
-    out_dir: str = "runs_neat_walker2d"
+    out_dir: str = "runs_neat_2_walker2d"
     video_seconds: int = 20
 
     seed: int = 42
@@ -168,9 +168,8 @@ class WalkerEvaluator:
             steps = 0
 
             while steps < self.cfg.max_episode_steps:
-                noisy_obs = obs if noise_vec is None else (obs + noise_vec)
-                action_raw = np.array(net.activate(noisy_obs.tolist()), dtype=np.float32)
-                action = np.tanh(action_raw)
+                action_raw = np.array(net.activate(obs.tolist()), dtype=np.float32)
+                action = np.tanh(action_raw if noise_vec is None else (action_raw + noise_vec))
 
                 obs, reward, terminated, truncated, _ = self.env.step(action)
                 cum_reward += float(reward)
@@ -284,16 +283,16 @@ class NEATTrainer:
     def close(self) -> None:
         self.evaluator.close()
 
-    def _phase_noise(self, phase_idx: int) -> Tuple[float, np.ndarray]:
-        phase_noise_value = float(np.random.standard_normal()) * self.cfg.noise_std
-        noise_vec = np.full((self.obs_dim,), phase_noise_value, dtype=np.float32)
-        self.current_phase_noise_value = phase_noise_value
+    def _phase_noise(self, phase_idx: int) -> np.ndarray:
+        noise_vec = np.random.normal(0.0, self.cfg.noise_std, size=(self.act_dim,)).astype(np.float32)
+        self.current_phase_noise_value = float(np.std(noise_vec))
 
         np.save(os.path.join(self.cfg.out_dir, f"phase_{phase_idx:02d}_noise.npy"), noise_vec)
         with open(os.path.join(self.cfg.out_dir, f"phase_{phase_idx:02d}_noise.json"), "w") as fh:
-            json.dump({"phase_noise_value": phase_noise_value}, fh, indent=2)
+            json.dump({"noise_vector": noise_vec.tolist()}, fh, indent=2)
+        print(f"[Phase {phase_idx}] Noise vector: {noise_vec}")
 
-        return phase_noise_value, noise_vec
+        return noise_vec
 
     def _save_checkpoint(self, phase_idx: int, gen_global: int) -> None:
         ckpt_dir = os.path.join(self.cfg.out_dir, f"checkpoint_phase{phase_idx:02d}_gen{gen_global:04d}")
@@ -384,9 +383,9 @@ class NEATTrainer:
         gen_global = 0
 
         for phase_idx in range(1, self.cfg.phases + 1):
-            phase_noise_value, noise_vec = self._phase_noise(phase_idx)
+            noise_vec = self._phase_noise(phase_idx)
             print(
-                f"[Phase {phase_idx}/{self.cfg.phases}] Noise value kept constant this phase: {phase_noise_value:.5f}"
+                f"[Phase {phase_idx}/{self.cfg.phases}] Noise vector kept constant this phase: {noise_vec}"
             )
 
             for gen_idx in range(1, self.cfg.max_generations_per_phase + 1):

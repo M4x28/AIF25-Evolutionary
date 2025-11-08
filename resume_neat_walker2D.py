@@ -105,10 +105,10 @@ def resume_training(
 
     for offset in range(extra_phases):
         phase_number = completed_phase + offset + 1
-        phase_noise_value, noise_vec = trainer._phase_noise(phase_number)
+        noise_vec = trainer._phase_noise(phase_number)
         print(
             f"[Resume] Phase {phase_number}/{total_phases} | "
-            f"Noise value: {phase_noise_value:.5f}"
+            f"Noise vector: {noise_vec}"
         )
 
         for gen in range(1, cfg.max_generations_per_phase + 1):
