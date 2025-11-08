@@ -60,6 +60,81 @@ def set_global_seed(seed: int) -> None:
     # Imposta il seed per il modulo 'random' (usato da 'neat-python')
     random.seed(seed)
 
+# Template di configurazione NEAT con commenti in italiano
+"""fitness_criterion     = max           # Criterio per la fitness: 'max' (massimizzare), 'min' (minimizzare), o 'mean' (media).
+fitness_threshold     = 9999999       # Soglia di fitness: l'evoluzione si ferma se un genoma raggiunge questo valore.
+pop_size              = {pop_size}    # Dimensione della popolazione (numero di genomi). (Template)
+reset_on_extinction   = False         # Se 'True', crea una nuova popolazione casuale se tutte le specie si estinguono.
+
+[DefaultGenome]
+# --- Impostazioni Funzioni di Attivazione ---
+activation_default      = tanh          # Funzione di attivazione predefinita per i nuovi nodi (es. tanh, sigmoid, relu).
+activation_mutate_rate  = 0.1           # Probabilità (0.0-1.0) che un nodo esistente muti la sua funzione di attivazione.
+activation_options      = tanh          # Lista di funzioni di attivazione tra cui scegliere durante la mutazione (separate da spazio).
+
+# --- Impostazioni Funzioni di Aggregazione (come un nodo somma i suoi input) ---
+aggregation_default     = sum           # Come un nodo aggrega i suoi input (es. sum, mean, max).
+aggregation_mutate_rate = 0.0           # Probabilità (0.0-1.0) che un nodo muti la sua funzione di aggregazione.
+aggregation_options     = sum           # Lista di funzioni di aggregazione tra cui scegliere (separate da spazio).
+
+# --- Impostazioni Bias (Offset) dei Nodi ---
+bias_init_mean          = 0.0           # Media per l'inizializzazione dei bias (distribuzione normale).
+bias_init_stdev         = 1.0           # Deviazione standard per l'inizializzazione dei bias.
+bias_max_value          = 30.0          # Valore massimo assoluto che un bias può assumere.
+bias_min_value          = -30.0         # Valore minimo assoluto che un bias può assumere.
+bias_mutate_power       = 0.5           # "Potenza" della mutazione del bias (dev. std. del rumore aggiunto).
+bias_mutate_rate        = 0.4           # Probabilità (0.0-1.0) che il bias di un nodo venga mutato (perturbato).
+bias_replace_rate       = 0.1           # Probabilità (0.0-1.0) che il bias di un nodo venga sostituito con un valore casuale.
+
+# --- Impostazioni di Compatibilità (per la Speciazione) ---
+compatibility_disjoint_coefficient = 1.0 # Coefficiente (C1) per i geni "disgiunti" nel calcolo della distanza di compatibilità.
+compatibility_weight_coefficient   = 0.5 # Coefficiente (C3) per la differenza media dei pesi nel calcolo della distanza.
+
+# --- Impostazioni Mutazioni Connessioni ---
+conn_add_prob           = 0.1           # Probabilità (0.0-1.0) di aggiungere una nuova connessione (mutazione strutturale).
+conn_delete_prob        = 0.1           # Probabilità (0.0-1.0) di eliminare una connessione esistente (mutazione strutturale).
+enabled_default         = True          # Se 'True', le nuove connessioni sono abilitate di default.
+enabled_mutate_rate     = 0.01          # Probabilità (0.0-1.0) di abilitare/disabilitare una connessione esistente.
+
+# --- Impostazioni Generali Genoma ---
+feed_forward            = True          # Se 'True', la rete è solo feed-forward (no connessioni ricorsive).
+initial_connection      = full_direct   # Connessioni iniziali: 'full_direct' (tutti input -> tutti output), 'full_nodirect', 'partial_direct', etc.
+node_add_prob           = 0.1           # Probabilità (0.0-1.0) di aggiungere un nuovo nodo (mutazione strutturale).
+node_delete_prob        = 0.1           # Probabilità (0.0-1.0) di eliminare un nodo (mutazione strutturale).
+num_hidden              = 0             # Numero di nodi nascosti *iniziali* (NEAT li aggiungerà evolutivamente).
+num_inputs              = {num_inputs}  # Numero di neuroni di input (dimensione osservazione). (Template)
+num_outputs             = {num_outputs} # Numero di neuroni di output (dimensione azione). (Template)
+
+# --- Impostazioni "Response" (moltiplicatore del nodo, spesso non usato) ---
+response_init_mean      = 1.0           # Media per inizializzazione "response" (raramente usato).
+response_init_stdev     = 0.0           # Dev. std. per inizializzazione "response".
+response_max_value      = 30.0          # Valore max "response".
+response_min_value      = -30.0         # Valore min "response".
+response_mutate_power   = 0.0           # Potenza mutazione "response".
+response_mutate_rate    = 0.0           # Probabilità mutazione "response".
+response_replace_rate   = 0.0           # Probabilità sostituzione "response".
+
+# --- Impostazioni Pesi (Weights) delle Connessioni ---
+weight_init_mean        = 0.0           # Media per l'inizializzazione dei pesi delle connessioni.
+weight_init_stdev       = 1.0           # Deviazione standard per l'inizializzazione dei pesi.
+weight_max_value        = 30.0          # Valore massimo assoluto che un peso può assumere.
+weight_min_value        = -30.0         # Valore minimo assoluto che un peso può assumere.
+weight_mutate_power     = 0.5           # "Potenza" della mutazione del peso (dev. std. del rumore aggiunto).
+weight_mutate_rate      = 0.4           # Probabilità (0.0-1.0) che il peso di una connessione venga mutato (perturbato).
+weight_replace_rate     = 0.1           # Probabilità (0.0-1.0) che il peso di una connessione venga sostituito con un valore casuale.
+
+[DefaultSpeciesSet]
+compatibility_threshold = 3.5           # Soglia di distanza per la speciazione: genomi con distanza < soglia sono della stessa specie.
+
+[DefaultStagnation]
+species_fitness_func = max           # Funzione per calcolare la fitness di un'intera specie (es. max, mean).
+max_stagnation       = 10          # Numero di generazioni senza miglioramenti prima che una specie sia considerata "stagnante".
+species_elitism      = 1           # Numero delle N specie migliori che sono protette dalla stagnazione (non vengono eliminate).
+
+[DefaultReproduction]
+elitism              = 2           # Numero di genomi "elite" (migliori) di ogni specie che passano alla generazione successiva senza mutazioni.
+survival_threshold   = 0.3         # Frazione (0.0-1.0) dei genomi peggiori di ogni specie che vengono eliminati (non si riproducono).
+"""
 
 DEFAULT_NEAT_CONFIG_TEMPLATE = """[NEAT]
 fitness_criterion     = max
@@ -122,31 +197,99 @@ elitism            = 2
 survival_threshold = 0.3
 """
 
+def ensure_neat_config(path: pathlib.Path, pop_size: int, num_inputs: int, num_outputs: int) -> None:
+    '''Crea un file di configurazione NEAT se non esiste già.
+
+    Controlla se il file specificato in 'path' esiste. Se esiste,
+    non fa nulla. Se non esiste, usa il template 
+    DEFAULT_NEAT_CONFIG_TEMPLATE per creare un nuovo file di configurazione,
+    riempiendo i segnaposto con i parametri forniti.
+
+    Input:
+        path (pathlib.Path): L'oggetto Path che punta al file di 
+                             configurazione da creare (es. "configs/neat.cfg").
+        pop_size (int): La dimensione della popolazione (numero di agenti).
+        num_inputs (int): Il numero di neuroni di input (dimensione 
+                          dello spazio di osservazione).
+        num_outputs (int): Il numero di neuroni di output (dimensione 
+                           dello spazio di azione).
+
+    Output:
+        None: La funzione non restituisce nulla, ma crea un file su disco.
+    '''
+    # Controlla se il file specificato da 'path' esiste già sul disco.
+    if path.exists():
+        # Se esiste, esci immediatamente dalla funzione.
+        return
+    
+    # Se il file non esiste:
+    # 1. Assicurati che la cartella che dovrebbe contenere il file
+    #    esista (es. "configs/"). 'path.parent' si riferisce alla
+    #    directory contenitore. Usiamo la funzione definita prima.
+    ensure_dir(str(path.parent))
+    
+    # 2. Prendi la stringa template e usa il metodo .format()
+    #    per sostituire i segnaposto (es. {pop_size}) con i valori
+    #    passati come argomenti alla funzione.
+    config_text = DEFAULT_NEAT_CONFIG_TEMPLATE.format(
+        pop_size=pop_size, num_inputs=num_inputs, num_outputs=num_outputs
+    )
+
+    # 3. Scrivi la stringa formattata (il testo completo della 
+    #    configurazione) nel file specificato da 'path'.
+    path.write_text(config_text)
 
 # ======================================================================================
 # Configurazione
 # ======================================================================================
-
-
-@dataclass
-class TrainConfig:
-    env_id: str = "Walker2d-v5"
-    exclude_current_positions_from_observation: bool = False
+@dataclass # @dataclass è un "decoratore". Python scriverà automaticamente __init__ (il costruttore),  __repr__ (per stamparla), ecc.
+class TrainConfig: # Contenitore centralizzato per tutti i parametri di configurazione dell'esperimento. 
+    # --- Parametri dell'Ambiente ---
+    # L'identificatore dell'ambiente Gymnasium
+    env_id: str = "Walker2d-v5" 
+    
+    # Se 'True', l'osservazione non includerà la posizione x (e z) assoluta del root (tronco).
+    exclude_current_positions_from_observation: bool = True
+    
+    # Il numero massimo di passi (timesteps) che un singolo episodio può durare prima di essere interrotto forzatamente (truncated).
     max_episode_steps: int = 10_000
+    
+    # Il numero di frame per secondo (FPS) da usare durante la creazione dei video di rendering.
     render_fps: int = 30
+    
+    # Un moltiplicatore nell'ambiente Walker2d che scala la ricompensa ottenuta per il movimento in avanti.
     forward_reward_weight: float = 2.0
 
-    pop_size: int = 40
+    # --- Parametri di NEAT (Evoluzione) ---
+    # La dimensione della popolazione NEAT (quanti genomi per generazione).
+    pop_size: int = 20
+    
+    # Quante generazioni di NEAT vengono eseguite *per ogni fase* di rumore.
     max_generations_per_phase: int = 100
+    
+    # Il numero totale di fasi di training. Ad ogni fase, il rumore applicato alle osservazioni viene cambiato.
     phases: int = 3
 
+    # --- Parametri del Rumore (Robustezza) ---
+    # La deviazione standard del rumore Gaussiano (casuale) che verrà aggiunto alle osservazioni.
     noise_std: float = 0.05
 
-    out_dir: str = "runs_neat_2_walker2d"
+    # --- Parametri di Output e Logging ---
+    
+    # Il percorso della cartella principale dove salvare tutti i risultati (checkpoint, video, grafici). 
+    out_dir: str = "runs/runs_neat_2_walker2d" 
+    
+    # La durata massima (in secondi) dei video registrati per il miglior genoma.
     video_seconds: int = 20
 
-    seed: int = 42
+    # --- Parametri di Riproducibilità ---
+    
+    # Il "seed" (seme) globale per la generazione di numeri casuali.
+    seed: int = 0
 
+    # --- Percorsi File ---
+    
+    # Il percorso del file di configurazione specifico per 
     neat_config_path: str = "configs/neat_walker2d.cfg"
 
 
@@ -283,6 +426,7 @@ class NEATTrainer:
         probe.close()
 
         config_path = pathlib.Path(cfg.neat_config_path)
+        ensure_neat_config(config_path, cfg.pop_size, self.obs_dim, self.act_dim)
         self.neat_config = neat.Config(
             neat.DefaultGenome,
             neat.DefaultReproduction,
