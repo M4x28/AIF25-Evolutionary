@@ -251,7 +251,7 @@ class NEATTrainer:
             exclude_current_positions_from_observation=cfg.exclude_current_positions_from_observation,
             forward_reward_weight=cfg.forward_reward_weight,
         )
-        self.obs_dim = int(np.prod(probe.observation_space.shape))
+        self.obs_dim = int(np.prod(probe.observation_space.shape)) 
         self.act_dim = int(np.prod(probe.action_space.shape))
         probe.close()
 
@@ -283,14 +283,16 @@ class NEATTrainer:
     def close(self) -> None:
         self.evaluator.close()
 
-    def _phase_noise(self, phase_idx: int) -> np.ndarray:
-        noise_vec = np.random.normal(0.0, self.cfg.noise_std, size=(self.act_dim,)).astype(np.float32)
-        self.current_phase_noise_value = float(np.std(noise_vec))
-
+    # Sostituzione in _phase_noise
+    def _phase_noise(self, phase_idx: int) -> Tuple[float, np.ndarray]:
+        # Genera un vettore di rumore, non un bias scalare
+        noise_vec = np.random.normal(loc=0.0, scale=self.cfg.noise_std, size=(self.obs_dim,)).astype(np.float32)
+        
+        # Salva il vettore (l'idea di salvare il "valore" scalare non è più valida)
         np.save(os.path.join(self.cfg.out_dir, f"phase_{phase_idx:02d}_noise.npy"), noise_vec)
         with open(os.path.join(self.cfg.out_dir, f"phase_{phase_idx:02d}_noise.json"), "w") as fh:
-            json.dump({"noise_vector": noise_vec.tolist()}, fh, indent=2)
-        print(f"[Phase {phase_idx}] Noise vector: {noise_vec}")
+            # Salva una statistica, es. la norma del vettore
+            json.dump({"phase_noise_norm": float(np.linalg.norm(noise_vec))}, fh, indent=2)
 
         return noise_vec
 
