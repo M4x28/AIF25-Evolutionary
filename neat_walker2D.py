@@ -145,7 +145,7 @@ reset_on_extinction   = False
 [DefaultGenome]
 activation_default      = tanh
 activation_mutate_rate  = 0.0
-activation_options      = tanh
+activation_options      = tanh 
 aggregation_default     = sum
 aggregation_mutate_rate = 0.0
 aggregation_options     = sum
@@ -297,14 +297,28 @@ class TrainConfig: # Contenitore centralizzato per tutti i parametri di configur
 # NEAT Evaluation Helpers
 # ======================================================================================
 
-
 class WalkerEvaluator:
-    """Valuta una genome NEAT su Walker2d con rumore costante per fase."""
+    """Valuta un genoma NEAT su Walker2d con rumore costante per fase."""
 
-    def __init__(self, cfg: TrainConfig, obs_dim: int, act_dim: int):
+    def __init__(self, cfg: TrainConfig, obs_dim: int, act_dim: int) -> None:
+        #
+        # Spiegazione funzione (Costruttore):
+        #   Inizializza il valutatore. Crea e memorizza un'istanza 
+        #   condivisa dell'ambiente Gymnasium che verrà usata 
+        #   per testare tutti i genomi.
+        #
+        # Input:
+        #   cfg (TrainConfig): La configurazione globale dell'esperimento.
+        #   obs_dim (int): Dimensione dello spazio di osservazione.
+        #   act_dim (int): Dimensione dello spazio di azione.
+        #
+        # Output: None
+        #
         self.cfg = cfg
         self.obs_dim = obs_dim
         self.act_dim = act_dim
+        
+        # Crea l'ambiente (verrà riusato da tutti i genomi)
         self.env = gym.make(
             cfg.env_id,
             exclude_current_positions_from_observation=cfg.exclude_current_positions_from_observation,
@@ -312,43 +326,82 @@ class WalkerEvaluator:
         )
 
     def close(self) -> None:
+        #
+        # Spiegazione funzione:
+        #   Chiude correttamente l'ambiente Gymnasium e rilascia le risorse.
+        #
+        # Input: self
+        # Output: None
+        #
         try:
+            # Tenta di chiudere l'ambiente
             self.env.close()
         except Exception:
+            # Ignora errori (es. se già chiuso)
+            print("Warning: failed to close the environment cleanly.")
             pass
 
     def evaluate_genomes(
         self,
-        genomes,
+        genomes: List[Tuple[int, neat.DefaultGenome]],
         neat_config: neat.Config,
         noise_vec: Optional[np.ndarray],
     ) -> None:
+        #
+        # Spiegazione funzione:
+        #   Calcola la fitness per un'intera popolazione (lista di genomi).
+        #   Esegue un episodio completo per ciascun genoma e assegna 
+        #   la ricompensa totale accumulata come `genome.fitness`.
+        #
+        # Input:
+        #   genomes: Lista di (genome_id, genome_object) da valutare.
+        #   neat_config: Configurazione NEAT per creare le reti neurali.
+        #   noise_vec: (Opcionale) Vettore di rumore costante da 
+        #              sommare alle osservazioni.
+        #
+        # Output:
+        #   None. Modifica i genomi "in-place", aggiornando il loro 
+        #   attributo .fitness.
+        #
+        
+        # Itera su ogni genoma della popolazione
         for _, genome in genomes:
+            
+            # 1. Crea la rete neurale (FeedForwardNetwork) da questo genoma
             net = neat.nn.FeedForwardNetwork.create(genome, neat_config)
+            
+            # 2. Resetta l'ambiente
+            #    Usiamo lo stesso seed per assicurare che *tutti* i genomi
+            #    partano dalla stessa identica condizione (valutazione equa).
             obs, _ = self.env.reset(seed=self.cfg.seed)
 
             cum_reward = 0.0
             steps = 0
 
+            # 3. Esegui la simulazione (un episodio)
             while steps < self.cfg.max_episode_steps:
-                        # 1. Apply noise to the observation
-                        noisy_obs = obs if noise_vec is None else (obs + noise_vec)
-                        
-                        # 2. Get action from network using the noisy observation
-                        action_raw = np.array(net.activate(noisy_obs.tolist()), dtype=np.float32)
-                        
-                        # 3. Apply activation function (tanh)
-                        action = np.tanh(action_raw)
+                
+                # Applica il rumore all'osservazione, se fornito
+                noisy_obs = obs if noise_vec is None else (obs + noise_vec)
+                
+                # Chiedi alla rete di decidere un'azione
+                action_raw = np.array(net.activate(noisy_obs.tolist()), dtype=np.float32)
+                
+                # Applica tanh per mappare l'output nell'intervallo [-1, 1], escludibile se l'unica funzione di attivazione è tanh
+                action = np.tanh(action_raw)
+                # Esegui l'azione nell'ambiente
+                obs, reward, terminated, truncated, _ = self.env.step(action)
 
-                        # 4. Step the environment
-                        obs, reward, terminated, truncated, _ = self.env.step(action)
-                        cum_reward += float(reward)
-                        steps += 1
-                        if terminated or truncated:
-                            break
+                cum_reward += float(reward)
+                steps += 1
+                
+                # Interrompi l'episodio se l'agente cade (terminated) 
+                # o finisce il tempo massimo (truncated)
+                if terminated or truncated:
+                    break
 
+            # 4. Assegna la ricompensa totale come fitness del genoma
             genome.fitness = cum_reward
-
 
 # ======================================================================================
 # Video helper
