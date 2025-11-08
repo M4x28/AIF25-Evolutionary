@@ -385,10 +385,8 @@ class WalkerEvaluator:
                 noisy_obs = obs if noise_vec is None else (obs + noise_vec)
                 
                 # Chiedi alla rete di decidere un'azione
-                action_raw = np.array(net.activate(noisy_obs.tolist()), dtype=np.float32)
-                
-                # Applica tanh per mappare l'output nell'intervallo [-1, 1], escludibile se l'unica funzione di attivazione è tanh
-                action = np.tanh(action_raw)
+                action = np.array(net.activate(noisy_obs.tolist()), dtype=np.float32)
+
                 # Esegui l'azione nell'ambiente
                 obs, reward, terminated, truncated, _ = self.env.step(action)
 
