@@ -80,7 +80,7 @@ survival_threshold   = 0.3         # Frazione (0.0-1.0) dei genomi peggiori di o
 
 DEFAULT_NEAT_CONFIG_TEMPLATE = """[NEAT]
 fitness_criterion     = max
-fitness_threshold     = 4000
+fitness_threshold     = 6500
 pop_size              = {pop_size}
 reset_on_extinction   = False
 
