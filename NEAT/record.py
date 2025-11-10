@@ -12,7 +12,7 @@ from visualization import record_video
 
 # --- 1. Definisci i percorsi ---
 # Questi percorsi puntano alla cartella che hai creato
-CARTELLA_VID = r"\vid1"
+CARTELLA_VID = r"\gen1000"
 GENOME_PATH = r"C:\Users\tesia\Desktop\AIF25\AIF25-Evolutionary\NEAT\tovideo" + CARTELLA_VID + r"\best_genome.pkl"
 NEAT_STATE_PATH = r"C:\Users\tesia\Desktop\AIF25\AIF25-Evolutionary\NEAT\tovideo"+ CARTELLA_VID + r"\neat_state"
 
