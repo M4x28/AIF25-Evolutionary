@@ -181,3 +181,5 @@ cython_debug/
 .cursorindexingignore
 
 .vscode
+.NEAT/record.py
+.NEAT/tovideo/*
