@@ -161,9 +161,9 @@ def ensure_neat_config(path: pathlib.Path, pop_size: int, num_inputs: int, num_o
         None: La funzione non restituisce nulla, ma crea un file su disco.
     '''
     # Controlla se il file specificato da 'path' esiste già sul disco.
-    if path.exists():
+    #if path.exists():
         # Se esiste, esci immediatamente dalla funzione.
-        return
+        #return
     
     # Se il file non esiste:
     # 1. Assicurati che la cartella che dovrebbe contenere il file
