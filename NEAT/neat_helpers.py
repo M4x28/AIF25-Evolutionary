@@ -80,7 +80,7 @@ survival_threshold   = 0.3         # Frazione (0.0-1.0) dei genomi peggiori di o
 
 DEFAULT_NEAT_CONFIG_TEMPLATE = """[NEAT]
 fitness_criterion     = max
-fitness_threshold     = 9999999
+fitness_threshold     = 4000
 pop_size              = {pop_size}
 reset_on_extinction   = False
 
@@ -96,47 +96,47 @@ bias_init_stdev         = 1.0
 bias_max_value          = 30.0
 bias_min_value          = -30.0
 bias_mutate_power       = 0.5
-bias_mutate_rate        = 0.4
+bias_mutate_rate        = 0.3
 bias_replace_rate       = 0.1
 compatibility_disjoint_coefficient = 1.0
 compatibility_weight_coefficient = 0.5
-conn_add_prob           = 0.1
-conn_delete_prob        = 0.1
+conn_add_prob           = 0.3
+conn_delete_prob        = 0.25
 enabled_default         = True
 enabled_mutate_rate     = 0.01
 feed_forward            = True
-initial_connection      = full_direct
-node_add_prob           = 0.1
-node_delete_prob        = 0.1
+initial_connection      = unconnected 
+node_add_prob           = 0.3
+node_delete_prob        = 0.25
 num_hidden              = 0
 num_inputs              = {num_inputs}
 num_outputs             = {num_outputs}
 response_init_mean      = 1.0
-response_init_stdev     = 0.0
+response_init_stdev     = 0.1
 response_max_value      = 30.0
 response_min_value      = -30.0
-response_mutate_power   = 0.0
-response_mutate_rate    = 0.0
-response_replace_rate   = 0.0
+response_mutate_power   = 0.1
+response_mutate_rate    = 0.1
+response_replace_rate   = 0.1
 weight_init_mean        = 0.0
 weight_init_stdev       = 1.0
 weight_max_value        = 30.0
 weight_min_value        = -30.0
 weight_mutate_power     = 0.5
-weight_mutate_rate      = 0.4
+weight_mutate_rate      = 0.3
 weight_replace_rate     = 0.1
 
 [DefaultSpeciesSet]
-compatibility_threshold = 3.5
+compatibility_threshold = 3.0
 
 [DefaultStagnation]
 species_fitness_func = max
-max_stagnation       = 10
-species_elitism      = 1
+max_stagnation       = 25
+species_elitism      = 3
 
 [DefaultReproduction]
-elitism            = 2
-survival_threshold = 0.3
+elitism            = 5
+survival_threshold = 0.2
 """
 
 

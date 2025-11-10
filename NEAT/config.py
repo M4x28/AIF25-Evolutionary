@@ -11,7 +11,7 @@ class TrainConfig: # Contenitore centralizzato per tutti i parametri di configur
     exclude_current_positions_from_observation: bool = True
     
     # Il numero massimo di passi (timesteps) che un singolo episodio può durare prima di essere interrotto forzatamente (truncated).
-    max_episode_steps: int = 10_000
+    max_episode_steps: int = 1_000
     
     # Il numero di frame per secondo (FPS) da usare durante la creazione dei video di rendering.
     render_fps: int = 30
@@ -21,17 +21,17 @@ class TrainConfig: # Contenitore centralizzato per tutti i parametri di configur
 
     # --- Parametri di NEAT (Evoluzione) ---
     # La dimensione della popolazione NEAT (quanti genomi per generazione).
-    pop_size: int = 150
+    pop_size: int = 440
     
     # Quante generazioni di NEAT vengono eseguite *per ogni fase* di rumore.
-    max_generations_per_phase: int = 25
+    max_generations_per_phase: int = 50
     
     # Il numero totale di fasi di training. Ad ogni fase, il rumore applicato alle osservazioni viene cambiato.
-    phases: int = 12
+    phases: int = 20
 
     # --- Parametri del Rumore (Robustezza) ---
     # La deviazione standard del rumore Gaussiano (casuale) che verrà aggiunto alle osservazioni.
-    noise_std: float = 0.00
+    noise_std: float = 0.05
 
     # --- Parametri di Output e Logging ---
     
@@ -44,7 +44,7 @@ class TrainConfig: # Contenitore centralizzato per tutti i parametri di configur
     # --- Parametri di Riproducibilità ---
     
     # Il "seed" (seme) globale per la generazione di numeri casuali.
-    seed: int = 0
+    seed: int = 42
 
     # --- Percorsi File ---
     

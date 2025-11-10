@@ -33,9 +33,10 @@ def eval_single_genome(params: Tuple) -> float:
     steps = 0
 
     # 5. Esegui la simulazione (come nel tuo vecchio codice)
-    while steps < cfg.max_episode_steps:
+    while steps <= cfg.max_episode_steps:
         noisy_obs = obs if noise_vec is None else (obs + noise_vec)
-        action = np.tanh(np.array(net.activate(noisy_obs.tolist()), dtype=np.float32))
+                        
+        action = np.array(net.activate(noisy_obs.tolist()), dtype=np.float32)
         obs, reward, terminated, truncated, _ = env.step(action)
         
         cum_reward += float(reward)
