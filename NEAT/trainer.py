@@ -115,9 +115,7 @@ class NEATTrainer:
         self.stats = neat.StatisticsReporter()
         # Aggiunge il reporter statistico alla popolazione
         self.population.add_reporter(self.stats)
-        
-        # Contatore usato per variare il seed di valutazione ad ogni generazione
-        self.seed_addition = 0
+
 
         # --- Inizializzazione Pool Parallelo ---
         # Rileva il numero di core della CPU sulla macchina
@@ -336,12 +334,7 @@ class NEATTrainer:
                   nella `self.population`.
         '''
         
-        # 1. Incrementa il contatore del seed.
-        #    Questo assicura che tutti i genomi in *questa* generazione
-        #    siano valutati sulla *stessa* condizione iniziale (stesso seed),
-        #    ma che la generazione *successiva* usi un seed diverso.
-        self.seed_addition += 1
-        eval_seed = self.cfg.seed + self.seed_addition
+        eval_seed = self.cfg.seed 
 
         # Definisce la funzione che NEAT userà per valutare i genomi.
         # Questa funzione interna ("closure") ha accesso a 'self',
