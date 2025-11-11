@@ -159,7 +159,7 @@ class CMAESTrainer:
             noise_vec = self._phase_noise(phase_idx)
             print(
                 f"[Phase {phase_idx}/{self.cfg.phases}] "
-                f"Noise vector kept constant this phase: {noise_vec:.5f}"
+                #f"Noise vector kept constant this phase: {noise_vec:.5f}" -- Rimosso perche' non puo' printare un vettore numpy
             )
 
             for gen in range(1, self.cfg.max_generations_per_phase + 1):
