@@ -21,7 +21,7 @@ from utils import ensure_dir, set_global_seed
 from config import TrainConfig
 from visualization import record_video
 from neuralnetwork import total_parameters
-from CMAES.evaluation import eval_single_genome
+from evaluation import eval_single_genome
 
 class CMAESTrainer:
     def __init__(self, cfg: TrainConfig):
