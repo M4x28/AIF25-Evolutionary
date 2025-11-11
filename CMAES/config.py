@@ -18,7 +18,8 @@ class TrainConfig: # Contenitore centralizzato per tutti i parametri di configur
     
     # Un moltiplicatore nell'ambiente Walker2d che scala la ricompensa ottenuta per il movimento in avanti.
     forward_reward_weight: float = 2.0
-
+    # Rete neurale (hidden layer size fissata a 32)
+    hidden_size: int = 32
     # Controlla la deviazione standard iniziale della distribuzione gaussiana usata per campionare le nuove soluzioni (la "forza della mutazione").
     sigma_init: float = 0.1
     # --- Parametri di NEAT (Evoluzione) ---
