@@ -7,7 +7,7 @@ from typing import Optional, Tuple
 
 import numpy as np
 
-from CMAES.cmaes_walker2D import CMAESTrainer, TrainConfig, set_global_seed
+from CMAES.deprecated.cmaes_walker2D import CMAESTrainer, TrainConfig, set_global_seed
 
 
 def _parse_phase_gen(name: str) -> Tuple[int, int]:

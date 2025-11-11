@@ -20,82 +20,8 @@ except Exception:
 from utils import ensure_dir, set_global_seed
 from config import TrainConfig
 from visualization import record_video
-from neuralnetwork import get_action, total_parameters
-
-
-class EnvRunner:
-    """
-    Valuta una policy in un singolo episodio su un singolo environment.
-    Il rumore è aggiunto a tutte le feature d'ingresso e resta costante per l'intera fase.
-    """
-
-    def __init__(self, cfg: TrainConfig, obs_dim: int, act_dim: int, hidden_size: int):
-        self.cfg = cfg
-        self.obs_dim = obs_dim
-        self.act_dim = act_dim
-        self.hidden_size = hidden_size
-        self.env = gym.make(
-            cfg.env_id,
-            exclude_current_positions_from_observation=cfg.exclude_current_positions_from_observation,
-            forward_reward_weight=cfg.forward_reward_weight,
-        )
-
-    def close(self) -> None:
-        try:
-            self.env.close()
-        except Exception:
-            pass
-
-    def evaluate(self, model: np.ndarray, noise_vec: Optional[np.ndarray]) -> float:
-        obs, _ = self.env.reset(seed=self.cfg.seed)
-        cum_reward = 0.0
-        steps = 0
-
-        while steps < self.cfg.max_episode_steps:
-            noisy_obs = obs if noise_vec is None else (obs + noise_vec)
-            action = get_action(model, noisy_obs, self.obs_dim, self.hidden_size, self.act_dim).astype(np.float32)
-            obs, reward, terminated, truncated, _ = self.env.step(action)
-            cum_reward += float(reward)
-            steps += 1
-            if terminated or truncated:
-                break
-
-        return cum_reward
-
-
-
-# ======================================================================================
-# --- MODIFICA: Funzione worker per multiprocessing ---
-# ======================================================================================
-
-
-def eval_single_genome(params: Tuple) -> float:
-    """
-    Funzione eseguita da un processo worker.
-    Valuta un singolo genoma in un ambiente dedicato.
-
-    I parametri sono passati come tupla per compatibilità con pool.map.
-    """
-    theta, cfg_dict, obs_dim, act_dim, hidden_size, noise_vec = params
-
-    # Ricrea la configurazione e il runner nel worker
-    # È FONDAMENTALE creare un'istanza di Env (e quindi EnvRunner)
-    # separata per ogni processo worker.
-    cfg = TrainConfig(**cfg_dict)
-    runner = EnvRunner(cfg, obs_dim, act_dim, hidden_size)
-
-    try:
-        reward = runner.evaluate(theta, noise_vec)
-    finally:
-        runner.close()  # Assicurati che l'ambiente del worker sia chiuso
-
-    return float(reward)
-
-
-# ======================================================================================
-# Trainer CMA-ES
-# ======================================================================================
-
+from neuralnetwork import total_parameters
+from CMAES.evaluation import eval_single_genome
 
 class CMAESTrainer:
     def __init__(self, cfg: TrainConfig):
@@ -132,7 +58,7 @@ class CMAESTrainer:
         self.history: Dict[str, List[float]] = {"gen_max": [], "gen_avg": []}
         self.best_theta: Optional[np.ndarray] = None
         self.best_reward: float = -np.inf
-        self.current_phase_noise_value: float = 0.0
+        self.current_phase_noise_vector: Optional[np.ndarray] = None
 
     def close(self) -> None:
         # --- MODIFICA: Chiusura del Pool ---
@@ -146,15 +72,31 @@ class CMAESTrainer:
         # --- Fine Modifica ---
 
     def _phase_noise(self, phase_idx: int) -> Tuple[float, np.ndarray]:
-        phase_noise_value = float(np.random.standard_normal()) * self.cfg.noise_std
-        noise_vec = np.full((self.obs_dim,), phase_noise_value, dtype=np.float32)
-        self.current_phase_noise_value = phase_noise_value
+        # Genera un vettore di rumore Gaussiano (media 0)
+        noise_vec = np.random.normal(
+            loc=0.0, 
+            scale=self.cfg.noise_std, 
+            size=(self.obs_dim,)
+        ).astype(np.float32)
+        
+        # Salva il vettore di rumore in un file binario NumPy
+        np.save(
+            os.path.join(self.cfg.out_dir, f"phase_{phase_idx:02d}_noise.npy"), 
+            noise_vec
+        )
+        
+        # Salva la norma L2 (grandezza) del vettore in un file JSON
+        # per un rapido controllo
+        with open(os.path.join(self.cfg.out_dir, f"phase_{phase_idx:02d}_noise.json"), "w") as fh:
+            json.dump(
+                {"phase_noise_norm": float(np.linalg.norm(noise_vec))}, 
+                fh, 
+                indent=2
+            )
 
-        np.save(os.path.join(self.cfg.out_dir, f"phase_{phase_idx:02d}_noise.npy"), noise_vec)
-        with open(os.path.join(self.cfg.out_dir, f"phase_{phase_idx:02d}_noise.json"), "w") as f:
-            json.dump({"phase_noise_value": phase_noise_value}, f, indent=2)
+        # Restituisce il vettore generato
+        return noise_vec
 
-        return phase_noise_value, noise_vec
 
     def _save_checkpoint(self, phase_idx: int, gen_global: int) -> None:
         ckpt_dir = os.path.join(self.cfg.out_dir, f"checkpoint_phase{phase_idx:02d}_gen{gen_global:04d}")
@@ -172,7 +114,7 @@ class CMAESTrainer:
             "seed": self.cfg.seed,
             "history": self.history,
             "best_reward": float(self.best_reward),
-            "current_phase_noise_value": self.current_phase_noise_value,
+            "current_phase_noise_vector": self.current_phase_noise_vector,
         }
         if self.best_theta is not None:
             np.save(os.path.join(ckpt_dir, "best_theta.npy"), self.best_theta)
@@ -214,10 +156,10 @@ class CMAESTrainer:
         cfg_dict = asdict(self.cfg)
 
         for phase_idx in range(1, self.cfg.phases + 1):
-            phase_noise_value, noise_vec = self._phase_noise(phase_idx)
+            noise_vec = self._phase_noise(phase_idx)
             print(
                 f"[Phase {phase_idx}/{self.cfg.phases}] "
-                f"Noise value kept constant this phase: {phase_noise_value:.5f}"
+                f"Noise vector kept constant this phase: {noise_vec:.5f}"
             )
 
             for gen in range(1, self.cfg.max_generations_per_phase + 1):
@@ -269,19 +211,3 @@ class CMAESTrainer:
 
         self._save_checkpoint(self.cfg.phases, total_gens)
         self.close()  # Chiude il pool
-
-
-# ======================================================================================
-# Entry point
-# ======================================================================================
-
-
-
-
-
-'''if __name__ == "__main__":
-    # --- MODIFICA: Protezione per multiprocessing ---
-    # Necessario su Windows e macOS (con 'spawn' start method)
-    # per evitare che i processi figli re-importino ed eseguano
-    # lo script principale all'infinito.
-    main()'''
