@@ -71,8 +71,9 @@ def simulate_policy(
     dt = float(getattr(env.unwrapped, "dt", 0.02))
 
     while not done:
-        raw_action = weights @ obs
-        action = np.tanh(raw_action if noise_vec is None else (raw_action + noise_vec))
+        noisy_obs = obs if noise_vec is None else (obs + noise_vec)
+        raw_action = weights @ noisy_obs
+        action = np.tanh(raw_action)
         obs, reward, terminated, truncated, info = env.step(action)
         done = terminated or truncated
         total_reward += float(reward)
@@ -111,8 +112,9 @@ def record_video(
     steps = 0
     max_steps = getattr(env.spec, "max_episode_steps", 1000)
     while steps < max_steps and len(frames) < max_frames:
-        raw_action = weights @ obs
-        action = np.tanh(raw_action if noise_vec is None else (raw_action + noise_vec))
+        noisy_obs = obs if noise_vec is None else (obs + noise_vec)
+        raw_action = weights @ noisy_obs
+        action = np.tanh(raw_action)
         obs, _, terminated, truncated, _ = env.step(action)
         rgb = env.render()
         if rgb is not None:
@@ -173,7 +175,7 @@ class WalkerCMAMeTrainer:
         self.best_objective: float = -np.inf
 
     def _phase_noise(self, phase_idx: int) -> np.ndarray:
-        noise_vec = np.random.normal(0.0, self.cfg.noise_std, size=(self.act_dim,)).astype(np.float32)
+        noise_vec = np.random.normal(0.0, self.cfg.noise_std, size=(self.obs_dim,)).astype(np.float32)
         np.save(os.path.join(self.cfg.out_dir, f"phase_{phase_idx:02d}_noise.npy"), noise_vec)
         print(f"[Phase {phase_idx}] Noise vector: {noise_vec}")
         with open(os.path.join(self.cfg.out_dir, f"phase_{phase_idx:02d}_noise.json"), "w") as fh:
