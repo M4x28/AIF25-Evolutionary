@@ -1,0 +1,13 @@
+[project]
+name = "CMA-ME"
+version = "0.1.0"
+description = "Modular QD training for Walker2d with CMA-ME"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = []
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -1,0 +1,8 @@
+gymnasium>=0.29.0
+numpy>=1.26.0
+matplotlib>=3.8.0
+dask[distributed]>=2024.3.0
+ribs>=0.6.0
+opencv-python>=4.8.0; platform_system != "Linux" or platform_machine != "aarch64"
+opencv-python-headless>=4.8.0; platform_system == "Linux" and platform_machine == "aarch64"
+# Nota: OpenCV è opzionale. Se non disponibile, il modulo video lo ignora.
