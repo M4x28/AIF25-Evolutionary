@@ -1,5 +1,5 @@
 [project]
-name = "walker_qd"
+name = "CAM-ME"
 version = "0.1.0"
 description = "Modular QD training for Walker2d with CMA-ME"
 readme = "README.md"
