@@ -9,7 +9,7 @@ import os
 from datetime import datetime
 from typing import Any
 
-_DEBUG_ENABLED = os.getenv("WALKER_QD_DEBUG", "1").strip().lower() not in {"0", "false", "no"}
+_DEBUG_ENABLED = os.getenv("WALKER_QD_DEBUG", "0").strip().lower() in {"1", "true", "yes"}
 
 
 def debug_log(message: str, **context: Any) -> None:

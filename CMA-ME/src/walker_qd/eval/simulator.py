@@ -6,7 +6,7 @@ from typing import List, Optional, Tuple
 import gymnasium as gym
 import numpy as np
 
-from ..env.policy import LinearTanhPolicy
+from ..policies.policy import LinearTanhPolicy
 from ..logging import debug_log
 
 

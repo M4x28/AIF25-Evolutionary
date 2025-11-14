@@ -28,13 +28,13 @@ class TrainConfig:
     sigma0: float = 0.5
 
     # Archive (MAP-Elites) ranges
-    archive_bins: Tuple[int, int] = (48, 32)
+    archive_bins: Tuple[int, int] = (128, 128)
     forward_velocity_range: Tuple[float, float] = (0.0, 10.0)
     torso_height_range: Tuple[float, float] = (0.8, 1.7)
     qd_score_offset: float = -500.0
 
     # Observation noise injection
-    noise_std: float = 0.05
+    noise_std: float = 0.2
 
     # Output directories
     out_dir: str = "runs_mapelites_walker2d"

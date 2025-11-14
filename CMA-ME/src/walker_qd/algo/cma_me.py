@@ -197,17 +197,22 @@ class CMAMETrainer:
                     best_global=self.best_objective,
                 )
 
-                if iter_global % 25 == 0 or itr == self.cfg.iterations_per_phase:
-                    print(
-                        f"[Phase {phase_idx}/{self.cfg.phases}] Iter {itr}/{self.cfg.iterations_per_phase} "
-                        f"(global {iter_global}) | max={self.history.obj_max[-1]:.2f} "
-                        f"mean={self.history.obj_mean[-1]:.2f} cov={self.history.coverage[-1]:.3f} "
-                        f"best={self.best_objective:.2f}"
-                    )
-
             self._checkpoint(phase_idx, iter_global, phase_best_solution, noise_vec)
             debug_log("Phase completed", phase=phase_idx, iter_global=iter_global)
+            if self.history.obj_max:
+                print(
+                    f"[Phase {phase_idx}/{self.cfg.phases}] completed | "
+                    f"iters={iter_global} | max={self.history.obj_max[-1]:.2f} "
+                    f"mean={self.history.obj_mean[-1]:.2f} cov={self.history.coverage[-1]:.3f} "
+                    f"best={self.best_objective:.2f}"
+                )
 
         client.close()
         debug_log("Training loop finished", iterations=iter_global, has_solution=self.best_solution is not None)
+        if self.history.obj_max:
+            print(
+                f"[Training Completed] total_iters={iter_global} | "
+                f"best_reward={self.best_objective:.2f} | "
+                f"final_cov={self.history.coverage[-1]:.3f}"
+            )
         return self.best_solution, iter_global, self.history
