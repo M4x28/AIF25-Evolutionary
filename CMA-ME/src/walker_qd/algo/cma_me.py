@@ -100,20 +100,20 @@ class CMAMETrainer:
             heatmap_bounds=(self.cfg.heatmap_vmin, self.cfg.heatmap_vmax),
         )
         # Video best phase
-        if phase_best_solution is not None:
-            frames = record_episode_video(
-                env_id=self.cfg.env_id,
-                seed=self.cfg.seed,
-                solution=phase_best_solution,
-                obs_dim=self.obs_dim,
-                act_dim=self.act_dim,
-                noise_vec=noise_vec,
-                max_seconds=self.cfg.video_seconds,
-                fps=self.cfg.render_fps,
-            )
-            write_rgb_video(frames, os.path.join(ckpt_dir, "best_phase.mp4"), self.cfg.render_fps)
-            debug_log("Phase video exported", phase=phase_idx, frames=len(frames))
-        debug_log("Checkpoint completed", phase=phase_idx, iteration=iter_global, path=ckpt_dir)
+        #if phase_best_solution is not None:
+        #    frames = record_episode_video(
+        #        env_id=self.cfg.env_id,
+        #        seed=self.cfg.seed,
+        #        solution=phase_best_solution,
+        #        obs_dim=self.obs_dim,
+        #        act_dim=self.act_dim,
+        #        noise_vec=noise_vec,
+        #        max_seconds=self.cfg.video_seconds,
+        #        fps=self.cfg.render_fps,
+        #    )
+        #    write_rgb_video(frames, os.path.join(ckpt_dir, "best_phase.mp4"), self.cfg.render_fps)
+        #    debug_log("Phase video exported", phase=phase_idx, frames=len(frames))
+        #debug_log("Checkpoint completed", phase=phase_idx, iteration=iter_global, path=ckpt_dir)
 
     def _update_history_and_bests(self) -> None:
         """Track archive stats while updating the global best solution."""
