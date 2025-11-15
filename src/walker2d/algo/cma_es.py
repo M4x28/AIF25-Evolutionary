@@ -95,7 +95,7 @@ class CMAESTrainer:
         return noise_vec
 
     def _save_checkpoint(self, phase_idx: int, gen_global: int) -> None:
-        ckpt_dir = os.path.join(self.cfg.out_dir, f"checkpoint_phase{phase_idx:02d}_gen{gen_global:04d}")
+        ckpt_dir = os.path.join(self.cfg.out_dir, f"checkpoint_phase{phase_idx:02d}_iter{gen_global:04d}")
         ensure_dir(ckpt_dir)
         state = {
             "config": asdict(self.cfg),

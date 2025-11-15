@@ -94,7 +94,7 @@ class CMAESConfig(WalkerBaseConfig):
 
     # --- CMA-ES settings ---------------------------------------------------------
     sigma0: float = 0.1  # Initial CMA-ES sampling stddev for policy parameters.
-    pop_size: int = 500  # CMA-ES population size (evaluations per generation).
+    pop_size: int = 200  # CMA-ES population size (evaluations per generation).
 
     # --- Outputs -----------------------------------------------------------------
     out_dir: str = "runs_cmaes_walker2d"  # Default output folder for CMA-ES runs.
