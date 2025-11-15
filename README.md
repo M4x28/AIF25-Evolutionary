@@ -2,9 +2,9 @@
 
 Walker2D with three complementary algorithms:
 
-- **CMA‑ME** – grid‑based MAP‑Elites search with CMA emitters.
 - **CMA‑ES** – classic evolutionary strategy on an MLP controller.
 - **NEAT** – neuroevolution of augmenting topologies.
+- **CMA‑ME** – grid-based MAP-Elites search with CMA emitters.
 
 The goal is to study how different evolutionary approaches behave under noise and whether their fitness trends remain stable across repeated runs.
 
@@ -12,37 +12,31 @@ The goal is to study how different evolutionary approaches behave under noise an
 
 <table>
   <tr>
-    <th>CMA‑ME</th>
     <th>CMA‑ES</th>
     <th>NEAT</th>
+    <th>CMA‑ME</th>
   </tr>
   <tr>
     <td>
-      <video src="runs_mapelites_walker2d/checkpoint_phase06_iter0600/best_model.mp4" width="500" controls>
-        Your browser does not support the video tag.
-      </video>
+      <img src="runs_cmaes_walker2d_pop50/checkpoint_phase06_iter0600/best_model.gif" width="500" alt="CMA-ES rollout">
     </td>
     <td>
-      <video src="runs_cmaes_walker2d/checkpoint_phase06_iter0600/best_model.mp4" width="500" controls>
-        Your browser does not support the video tag.
-      </video>
+      <img src="runs_neat_walker2d/checkpoint_phase06_iter0600/best_model.gif" width="500" alt="NEAT rollout">
     </td>
     <td>
-      <video src="runs_neat_walker2d/checkpoint_phase06_iter0600/best_model.mp4" width="500" controls>
-        Your browser does not support the video tag.
-      </video>
+      <img src="runs_mapelites_walker2d/checkpoint_phase06_iter0600/best_model.gif" width="300" alt="CMA-ME rollout">
     </td>
   </tr>
   <tr>
     <td>
-      <img src="runs_mapelites_walker2d/checkpoint_phase06_iter0600/reward_curve.png" width="500" alt="CMA-ME reward curve">
-      <img src="runs_mapelites_walker2d/checkpoint_phase06_iter0600/archive_heatmap.png" width="500" alt="CMA-ME reward curve">
-    </td>
-    <td>
-      <img src="runs_cmaes_walker2d/checkpoint_phase06_iter0600/reward_curve.png" width="500" alt="CMA-ES reward curve">
+      <img src="runs_cmaes_walker2d_pop50/checkpoint_phase06_iter0600/reward_curve.png" width="500" alt="CMA-ES reward curve">
     </td>
     <td>
       <img src="runs_neat_walker2d/checkpoint_phase06_iter0600/reward_curve.png" width="500" alt="NEAT fitness curve">
+    </td>
+    <td>
+      <img src="runs_mapelites_walker2d/checkpoint_phase06_iter0600/reward_curve.png" width="300" alt="CMA-ME reward curve">
+      <img src="runs_mapelites_walker2d/checkpoint_phase06_iter0600/archive_heatmap.png" width="300" alt="CMA-ME heatmap">
     </td>
   </tr>
 </table>
@@ -76,14 +70,14 @@ pip install -e .
 Run any algorithm via the unified CLI:
 
 ```bash
-# CMA-ME (default settings in CMAMEConfig)
-python -m walker2d.cli.train --algo cma-me
-
 # CMA-ES
 python -m walker2d.cli.train --algo cma-es
 
 # NEAT
 python -m walker2d.cli.train --algo neat
+
+# CMA-ME (default settings in CMAMEConfig)
+python -m walker2d.cli.train --algo cma-me
 ```
 
 Optional overrides: `--out-dir path/to/runs` and `--seed 1234`.
@@ -103,9 +97,9 @@ All knobs live in `walker2d/config.py`:
 | Section             | Key fields                                                                                     |
 |---------------------|-------------------------------------------------------------------------------------------------|
 | `WalkerBaseConfig`  | `noise_std`, `workers`, default filenames for checkpoints, reward curves, videos, parameters.  |
-| `CMAMEConfig`       | `num_emitters`, `emitter_batch`, `sigma0`, archive ranges + labels.                             |
 | `CMAESConfig`       | `hidden_size`, `sigma0`, `pop_size`.                                                           |
 | `NEATConfig`        | Every NEAT hyper-parameter (activation, mutation, species, reproduction) + automatic `.cfg` generation. |
+| `CMAMEConfig`       | `num_emitters`, `emitter_batch`, `sigma0`, archive ranges + labels.                             |
 
 Tweak values once and re‑install (`pip install -e .`) or run from source for immediate effect.
 
@@ -137,4 +131,4 @@ Each run writes to `runs_*` (configurable):
 - **NEAT config errors?** `NEATConfig` now regenerates `configs/neat_walker2d.cfg` automatically; delete stale files if necessary.
 - **Performance variance?** Increase `workers`, ensure consistent seeds, and follow the suggested experiment grid.
 
-Happy experimenting! If you extend the project (new policies, envs, or visualizations) keep the configuration and filenames consistent so that comparison across algorithms remains straightforward.
+If you extend the project (new policies, envs, or visualizations) keep the configuration and filenames consistent so that comparison across algorithms remains straightforward.
