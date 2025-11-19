@@ -37,6 +37,7 @@ def main() -> None:
     parser.add_argument("--algo", type=str, default="cma-me", choices=list(ALGOS.keys()))
     parser.add_argument("--out-dir", type=str, default=None)
     parser.add_argument("--seed", type=int, default=None)
+    parser.add_argument("--noise-std", type=float, default=None, help="Override noise_std in the config.")
     args = parser.parse_args()
 
     TrainerCls, ConfigCls = ALGOS[args.algo]
@@ -45,6 +46,8 @@ def main() -> None:
         cfg_dict["out_dir"] = args.out_dir
     if args.seed is not None:
         cfg_dict["seed"] = args.seed
+    if args.noise_std is not None:
+        cfg_dict["noise_std"] = args.noise_std
     cfg = ConfigCls(**cfg_dict)
     debug_log("CLI configuration built", algo=args.algo, out_dir=cfg.out_dir, seed=cfg.seed)
 

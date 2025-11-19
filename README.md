@@ -82,6 +82,8 @@ python -m walker2d.cli.train --algo cma-me
 
 Optional overrides: `--out-dir path/to/runs` and `--seed 1234`.
 
+Set `--noise-std` to override the default observation noise from the CLI, e.g. `python -m walker2d.cli.train --algo cma-es --noise-std 0.1`.
+
 ### Export video from a checkpoint
 
 ```bash
