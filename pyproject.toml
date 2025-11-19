@@ -1,0 +1,24 @@
+[project]
+name = "CMA-ME"
+version = "0.1.0"
+description = "Modular QD training for Walker2d with CMA-ME"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "gymnasium==1.2.2",
+    "numpy>=1.26.0",
+    "matplotlib>=3.8.0",
+    "dask[distributed]>=2024.3.0",
+    "ribs>=0.6.0",
+    "shapely>=2.0.0",
+    "cmaes>=0.10.0",
+    "neat-python>=0.92",
+    'opencv-python>=4.8.0; platform_system != "Linux" or platform_machine != "aarch64"',
+    'opencv-python-headless>=4.8.0; platform_system == "Linux" and platform_machine == "aarch64"',
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
