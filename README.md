@@ -18,25 +18,25 @@ The goal is to study how different evolutionary approaches behave under noise an
   </tr>
   <tr>
     <td>
-      <img src="runs_cmaes_walker2d_pop50/checkpoint_phase06_iter0600/best_model.gif" width="500" alt="CMA-ES rollout">
+      <img src="experiments/runs_cmaes_walker2d_std1/checkpoint_phase06_iter0600/best_model.gif" width="500" alt="CMA-ES rollout">
     </td>
     <td>
-      <img src="runs_neat_walker2d/checkpoint_phase06_iter0600/best_model.gif" width="500" alt="NEAT rollout">
+      <img src="experiments/runs_neat_walker2d_std0.1/checkpoint_phase06_iter0600/best_model.gif" width="500" alt="NEAT rollout">
     </td>
     <td>
-      <img src="runs_mapelites_walker2d/checkpoint_phase06_iter0600/best_model.gif" width="300" alt="CMA-ME rollout">
+      <img src="experiments/runs_cmame_walker2d_std3/checkpoint_phase05_iter0500/best_model.gif" width="500" alt="CMA-ME rollout">
     </td>
   </tr>
   <tr>
     <td>
-      <img src="runs_cmaes_walker2d_pop50/checkpoint_phase06_iter0600/reward_curve.png" width="500" alt="CMA-ES reward curve">
+      <img src="experiments/runs_cmaes_walker2d_std1/checkpoint_phase06_iter0600/reward_curve_show.png" width="500" alt="CMA-ES reward curve">
     </td>
     <td>
-      <img src="runs_neat_walker2d/checkpoint_phase06_iter0600/reward_curve.png" width="500" alt="NEAT fitness curve">
+      <img src="experiments/runs_neat_walker2d_std0.1/checkpoint_phase06_iter0600/reward_curve_show.png" width="500" alt="NEAT fitness curve">
     </td>
     <td>
-      <img src="runs_mapelites_walker2d/checkpoint_phase06_iter0600/reward_curve.png" width="300" alt="CMA-ME reward curve">
-      <img src="runs_mapelites_walker2d/checkpoint_phase06_iter0600/archive_heatmap.png" width="300" alt="CMA-ME heatmap">
+      <img src="experiments/runs_cmame_walker2d_std3/checkpoint_phase06_iter0600/live_reward_curve_show.png" width="500" alt="CMA-ME reward curve">
+      <img src="experiments/runs_cmame_walker2d_std3/checkpoint_phase06_iter0600/archive_heatmap.png" width="500" alt="CMA-ME heatmap">
     </td>
   </tr>
 </table>
@@ -87,7 +87,7 @@ Set `--noise-std` to override the default observation noise from the CLI, e.g. `
 ### Export video from a checkpoint
 
 ```bash
-python -m walker2d.cli.resume --algo {cma-es/neat/cma-me} --checkpoint runs_neat_walker2d/checkpoint_phase06_iter0600 --output best_resume.mp4
+python -m walker2d.cli.resume --algo {cma-es/neat/cma-me} --checkpoint experiments/neat_walker2d/checkpoint_phase06_iter0600 --output best_resume.mp4
 ```
 
 If `--output` is omitted, the MP4 is written inside the checkpoint folder.
@@ -117,7 +117,7 @@ This results in 9 runs per algorithm (27 total). Use the standardized filenames 
 
 ## Outputs
 
-Each run writes to `runs_*` (configurable):
+Each run writes under `experiments/*` (configurable):
 
 - `checkpoint_phaseXX_iterYYYY/`
   - `state.json`, archive `.npz`, scheduler `.pkl`

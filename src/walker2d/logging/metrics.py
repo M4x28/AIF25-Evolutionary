@@ -19,6 +19,8 @@ class History:
 
     obj_max: List[float] = field(default_factory=list)
     obj_mean: List[float] = field(default_factory=list)
+    iter_obj_max: List[float] = field(default_factory=list)  # Per-iteration (batch) max reward
+    iter_obj_mean: List[float] = field(default_factory=list)  # Per-iteration (batch) mean reward
     coverage: List[float] = field(default_factory=list)
     qd_score: List[float] = field(default_factory=list)
     norm_qd_score: List[float] = field(default_factory=list)
@@ -28,6 +30,8 @@ class History:
         payload = {
             "obj_max": self.obj_max,
             "obj_mean": self.obj_mean,
+            "iter_obj_max": self.iter_obj_max,
+            "iter_obj_mean": self.iter_obj_mean,
             "coverage": self.coverage,
             "qd_score": self.qd_score,
             "norm_qd_score": self.norm_qd_score,

@@ -36,11 +36,12 @@ class WalkerBaseConfig:
     workers: int = 0  # Parallel worker count shared across Dask / multiprocessing pools (0 => means use max number of workers).
 
     # --- Output --------------------------------------------------------
-    out_dir: str = "runs_walker2d"  # Root folder where checkpoints / videos / stats will be stored.
+    out_dir: str = "experiments/runs_walker2d"  # Root folder where checkpoints / videos / stats will be stored.
     best_params_filename: str = "best_solution.npy"  # Filename used when persisting the best parameters.
     phase_best_params_filename: str = "phase_best_solution.npy"  # Filename for per-phase best solution.
     reward_curve_filename: str = "reward_curve.png"  # Filename used for fitness/reward plots.
     best_video_filename: str = "best_model.mp4"  # Filename for recorded rollout videos.
+    live_reward_curve_filename: str = "live_reward_curve.png"  # Filename for per-iteration reward plot (if produced).
 
     def __post_init__(self) -> None:
         debug_log(
@@ -71,7 +72,7 @@ class CMAMEConfig(WalkerBaseConfig):
     archive_measure_labels: Tuple[str, str] = ("Forward velocity", "Torso height")  # Human-readable axis labels.
 
     # --- Visualization -----------------------------------------------------------
-    out_dir: str = "runs_mapelites_walker2d"  # Default run directory for CMA-ME experiments.
+    out_dir: str = "experiments/mapelites_walker2d"  # Default run directory for CMA-ME experiments.
     heatmap_vmin: float = -500.0  # Lower color scale bound for archive heatmaps.
     heatmap_vmax: float = 1500.0  # Upper color scale bound for archive heatmaps.
 
@@ -97,7 +98,7 @@ class CMAESConfig(WalkerBaseConfig):
     pop_size: int = 200  # CMA-ES population size (evaluations per generation).
 
     # --- Outputs -----------------------------------------------------------------
-    out_dir: str = "runs_cmaes_walker2d"  # Default output folder for CMA-ES runs.
+    out_dir: str = "experiments/cmaes_walker2d"  # Default output folder for CMA-ES runs.
 
     def __post_init__(self) -> None:
         super().__post_init__()
@@ -182,7 +183,7 @@ class NEATConfig(WalkerBaseConfig):
     survival_threshold: float = 0.2
 
     # --- Outputs -----------------------------------------------------------------
-    out_dir: str = "runs_neat_walker2d"  # Default output folder for NEAT runs.
+    out_dir: str = "experiments/neat_walker2d"  # Default output folder for NEAT runs.
 
     def __post_init__(self) -> None:
         super().__post_init__()

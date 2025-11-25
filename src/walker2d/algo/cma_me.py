@@ -14,7 +14,7 @@ from ribs.schedulers import Scheduler
 
 from ..config import CMAMEConfig
 from ..eval.simulator import record_episode_video, simulate_policy
-from ..logging.metrics import History
+from ..logging.metrics import History, plot_training_curves
 from ..persistence.checkpoint import save_checkpoint_bundle
 from ..utils import debug_log, ensure_dir
 from ..utils.io import save_json
@@ -118,6 +118,19 @@ class CMAMETrainer:
             write_rgb_video(frames, os.path.join(ckpt_dir, self.cfg.best_video_filename), self.cfg.render_fps)
             debug_log("Phase video exported", phase=phase_idx, frames=len(frames))
 
+        # Export live per-iteration reward trend (captures drops when noise changes).
+        if self.history.iter_obj_max:
+            live_curve_path = os.path.join(ckpt_dir, self.cfg.live_reward_curve_filename)
+            plot_training_curves(
+                self.history,
+                live_curve_path,
+                series=[("iter_obj_max", "Batch max"), ("iter_obj_mean", "Batch mean")],
+                x_label="Iteration",
+                left_label="Reward",
+                title="CMA-ME live batch rewards",
+                figsize=(7, 4),
+            )
+
     def _update_history_and_bests(self) -> None:
         """Track archive stats while updating the global best solution."""
         stats = self.archive.stats
@@ -183,6 +196,10 @@ class CMAMETrainer:
                 for reward, vel, height in results:
                     objectives.append(reward)
                     measures.append([vel, height])
+
+                # Track per-iteration reward stats to visualize the impact of phase noise changes.
+                self.history.iter_obj_max.append(float(np.max(objectives)))
+                self.history.iter_obj_mean.append(float(np.mean(objectives)))
 
                 self.scheduler.tell(objectives, measures)
                 iter_global += 1
