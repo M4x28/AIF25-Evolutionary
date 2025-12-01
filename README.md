@@ -1,5 +1,5 @@
 # Walker2D Evolution Suite
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Fhtl8Bp9Whb-54ZY8DdRrXvHPX0wA-D1)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1kq9gHYwR_SGfELJaq2oM3xP-CgpjAQcI?usp=sharing)
 
 Walker2D with three complementary algorithms:
 
@@ -62,7 +62,7 @@ CMA-ME/
 ## Quick Start
 
 You can run the training immediately in the cloud without local installation:
-[Run in Google Colab](https://colab.research.google.com/drive/1Fhtl8Bp9Whb-54ZY8DdRrXvHPX0wA-D1)
+[Run in Google Colab](https://colab.research.google.com/drive/1kq9gHYwR_SGfELJaq2oM3xP-CgpjAQcI?usp=sharing)
 
 Or install locally:
 
