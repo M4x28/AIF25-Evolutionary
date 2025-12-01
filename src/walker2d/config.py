@@ -24,7 +24,7 @@ class WalkerBaseConfig:
     # --- Render Best Model -----------------------------------------------
     render_fps: int = 30  # FPS used when exporting rollout videos.
     video_seconds: int = 20  # Duration of exported videos (identical for all algorithms).
-    allow_save_best_model_video: bool = True  # Toggle video export for best solutions.
+    allow_save_best_model_video: bool = False  # Toggle video export for best solutions.
 
     # --- Reward Weights ---------------------------------------------------------
     forward_reward_weight: float = 2.0  # MuJoCo reward coefficient that scales forward velocity.

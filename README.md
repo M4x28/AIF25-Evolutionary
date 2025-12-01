@@ -94,14 +94,19 @@ If `--output` is omitted, the MP4 is written inside the checkpoint folder.
 
 ## Configuration Highlights
 
-All knobs live in `walker2d/config.py`:
+All configurations are in `walker2d/config.py`:
 
 | Section             | Key fields                                                                                     |
 |---------------------|-------------------------------------------------------------------------------------------------|
-| `WalkerBaseConfig`  | `noise_std`, `workers`, default filenames for checkpoints, reward curves, videos, parameters.  |
+| `WalkerBaseConfig`  | `noise_std`, `workers`, `exclude_current_positions_from_observation`, `phases`, `iterations_per_phase`, `video_seconds`, `allow_save_best_model_video`, output directory and file names.  |
 | `CMAESConfig`       | `hidden_size`, `sigma0`, `pop_size`.                                                           |
 | `NEATConfig`        | Every NEAT hyper-parameter (activation, mutation, species, reproduction) + automatic `.cfg` generation. |
 | `CMAMEConfig`       | `num_emitters`, `emitter_batch`, `sigma0`, archive ranges + labels.                             |
+
+<div style="background-color: rgba(0, 0, 0, 0.05); padding: 12px 16px; border-radius: 8px;">
+  <strong>allow_save_best_model_video</strong> is set to <code>False</code> by default to run the code on colab, change it to <code>True</code> if you want to run it locally and save the best models videos.
+</div>
+<br>
 
 Tweak values once and re‑install (`pip install -e .`) or run from source for immediate effect.
 
@@ -134,3 +139,5 @@ Each run writes under `experiments/*` (configurable):
 - **Performance variance?** Increase `workers`, ensure consistent seeds, and follow the suggested experiment grid.
 
 If you extend the project (new policies, envs, or visualizations) keep the configuration and filenames consistent so that comparison across algorithms remains straightforward.
+
+
