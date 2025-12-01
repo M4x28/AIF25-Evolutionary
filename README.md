@@ -61,6 +61,11 @@ CMA-ME/
 
 ## Quick Start
 
+You can run the training immediately in the cloud without local installation:
+[Run in Google Colab](https://colab.research.google.com/drive/1Fhtl8Bp9Whb-54ZY8DdRrXvHPX0wA-D1)
+
+Or install locally:
+
 ```bash
 python -m venv .venv
 .venv\Scripts\activate
