@@ -1,4 +1,5 @@
 # Walker2D Evolution Suite
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Fhtl8Bp9Whb-54ZY8DdRrXvHPX0wA-D1)
 
 Walker2D with three complementary algorithms:
 
